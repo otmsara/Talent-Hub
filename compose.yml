@@ -1,0 +1,151 @@
+services:
+  # Discovery Server
+  discovery-server:
+    build: ./discovery-server
+    ports:
+      - "8761:8761"
+    environment:
+      - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE}
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8761/actuator/health" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  # Media Service
+  media-service:
+    build: ./media-service
+    environment:
+      - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE}
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULT_ZONE=${EUREKA_CLIENT_SERVICE_URL_DEFAULT_ZONE}
+      - STORAGE_NAME=${STORAGE_NAME}
+      - STORAGE_BASE_URL=${STORAGE_BASE_URL}
+      - AZURE_STORAGE_CONNECTION_STRING=${AZURE_STORAGE_CONNECTION_STRING}
+      - SPRING_DATABASE_DATASOURCE_URL=${SPRING_DATABASE_DATASOURCE_URL}/${MEDIA_SERVICE_DATABASE_NAME}
+      - SPRING_DATABASE_USERNAME=${SPRING_DATABASE_USERNAME}
+      - SPRING_DATABASE_PASSWORD=${SPRING_DATABASE_PASSWORD}
+      - SPRING_SERVLET_MULTIPART_MAX_FILE_SIZE=${SPRING_SERVLET_MULTIPART_MAX_FILE_SIZE}
+      - SPRING_SERVLET_MULTIPART_MAX_REQUEST_SIZE=${SPRING_SERVLET_MULTIPART_MAX_REQUEST_SIZE}
+    depends_on:
+      discovery-server:
+        condition: service_healthy
+
+  # User Service
+  user-service:
+    build: ./user-service
+    ports:
+      - "8091:8091"
+    environment:
+      - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE}
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULT_ZONE=${EUREKA_CLIENT_SERVICE_URL_DEFAULT_ZONE}
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_EXPIRATION=${JWT_EXPIRATION}
+      - SPRING_DATABASE_DATASOURCE_URL=${SPRING_DATABASE_DATASOURCE_URL}/${USER_SERVICE_DATABASE_NAME}
+      - SPRING_DATABASE_USERNAME=${SPRING_DATABASE_USERNAME}
+      - SPRING_DATABASE_PASSWORD=${SPRING_DATABASE_PASSWORD}
+      - AZURE_SERVICEBUS_CONNECTION_STRING=${AZURE_SERVICEBUS_CONNECTION_STRING}
+    depends_on:
+      discovery-server:
+        condition: service_healthy
+
+  # Post Service
+  post-service:
+    build: ./post-service
+    environment:
+      - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE}
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULT_ZONE=${EUREKA_CLIENT_SERVICE_URL_DEFAULT_ZONE}
+      - JWT_SECRET=${JWT_SECRET}
+      - SPRING_DATABASE_DATASOURCE_URL=${SPRING_DATABASE_DATASOURCE_URL}/${POST_SERVICE_DATABASE_NAME}
+      - SPRING_DATABASE_USERNAME=${SPRING_DATABASE_USERNAME}
+      - SPRING_DATABASE_PASSWORD=${SPRING_DATABASE_PASSWORD}
+      - AZURE_SERVICEBUS_CONNECTION_STRING=${AZURE_SERVICEBUS_CONNECTION_STRING}
+    depends_on:
+      discovery-server:
+        condition: service_healthy
+
+  # Chat Service
+  chat-service:
+    build: ./chat-service
+    ports:
+      - "8093:8093"
+    environment:
+      - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE}
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULT_ZONE=${EUREKA_CLIENT_SERVICE_URL_DEFAULT_ZONE}
+      - JWT_SECRET=${JWT_SECRET}
+      - SPRING_DATABASE_DATASOURCE_URL=${SPRING_DATABASE_DATASOURCE_URL}/${CHAT_SERVICE_DATABASE_NAME}
+      - SPRING_DATABASE_USERNAME=${SPRING_DATABASE_USERNAME}
+      - SPRING_DATABASE_PASSWORD=${SPRING_DATABASE_PASSWORD}
+    depends_on:
+      discovery-server:
+        condition: service_healthy
+
+  #Job Service
+  job-service:
+    build: ./job-service
+    ports:
+      - "8086:8086"
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULT_ZONE=http://discovery-server:8761/eureka/
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://database:5432/job_service
+      - SPRING_DATASOURCE_USERNAME=user
+      - SPRING_DATASOURCE_PASSWORD=password
+    depends_on:
+      discovery-server:
+        condition: service_healthy
+
+
+  # Notification Service
+  notification-service:
+    build: ./notification-service
+    environment:
+      - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE}
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULT_ZONE=${EUREKA_CLIENT_SERVICE_URL_DEFAULT_ZONE}
+      - JWT_SECRET=${JWT_SECRET}
+      - SPRING_DATABASE_DATASOURCE_URL=${SPRING_DATABASE_DATASOURCE_URL}/${NOTIFICATION_SERVICE_DATABASE_NAME}
+      - SPRING_DATABASE_USERNAME=${SPRING_DATABASE_USERNAME}
+      - SPRING_DATABASE_PASSWORD=${SPRING_DATABASE_PASSWORD}
+      - AZURE_SERVICEBUS_CONNECTION_STRING=${AZURE_SERVICEBUS_CONNECTION_STRING}
+    depends_on:
+      discovery-server:
+        condition: service_healthy
+
+  # API Gateway
+  api-gateway:
+    build: ./api-gateway
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE}
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULT_ZONE=${EUREKA_CLIENT_SERVICE_URL_DEFAULT_ZONE}
+      - JWT_SECRET=${JWT_SECRET}
+    depends_on:
+      user-service:
+        condition: service_started
+      post-service:
+        condition: service_started
+      chat-service:
+        condition: service_started
+      notification-service:
+        condition: service_started
+
+  # Database
+  database:
+    image: postgres:16.8
+    environment:
+      - POSTGRES_USER=${SPRING_DATABASE_USERNAME}
+      - POSTGRES_PASSWORD=${SPRING_DATABASE_PASSWORD}
+      - POSTGRES_DB=default_db
+    volumes:
+      - database_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-U", "user" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  database_data:
+
+
+

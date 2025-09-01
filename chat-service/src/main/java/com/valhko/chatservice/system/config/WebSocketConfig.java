@@ -1,0 +1,60 @@
+package com.valhko.chatservice.system.config;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.valhko.chatservice.system.interceptor.AuthChannelInterceptor;
+import com.valhko.chatservice.system.interceptor.CustomHandshakeInterceptor;
+import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.messaging.converter.DefaultContentTypeResolver;
+import org.springframework.messaging.converter.MappingJackson2MessageConverter;
+import org.springframework.messaging.converter.MessageConverter;
+import org.springframework.messaging.simp.config.ChannelRegistration;
+import org.springframework.messaging.simp.config.MessageBrokerRegistry;
+import org.springframework.util.MimeTypeUtils;
+import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
+import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
+import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
+
+import java.util.List;
+
+@Configuration
+@EnableWebSocketMessageBroker
+@RequiredArgsConstructor
+public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
+    private final CustomHandshakeInterceptor customHandshakeInterceptor;
+    private final AuthChannelInterceptor authChannelInterceptor;
+
+    @Override
+    public void configureMessageBroker(MessageBrokerRegistry registry) {
+        registry.enableSimpleBroker("/queue", "/topic");
+        registry.setApplicationDestinationPrefixes("/app");
+        registry.setUserDestinationPrefix("/user");
+    }
+
+    @Override
+    public void configureClientInboundChannel(ChannelRegistration registration) {
+        registration.interceptors(authChannelInterceptor);
+    }
+
+    @Override
+    public void registerStompEndpoints(StompEndpointRegistry registry) {
+        registry.addEndpoint("/ws-messages")
+                .setAllowedOriginPatterns("*")
+                .addInterceptors(customHandshakeInterceptor)
+                .withSockJS();
+    }
+
+    @Override
+    public boolean configureMessageConverters(List<MessageConverter> messageConverters) {
+        var resolver = new DefaultContentTypeResolver();
+        resolver.setDefaultMimeType(MimeTypeUtils.APPLICATION_JSON);
+
+        var converter = new MappingJackson2MessageConverter();
+        converter.setContentTypeResolver(resolver);
+        converter.setObjectMapper(new ObjectMapper());
+
+        messageConverters.add(converter);
+
+        return false;
+    }
+}

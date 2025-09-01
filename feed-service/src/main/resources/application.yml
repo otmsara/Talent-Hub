@@ -1,0 +1,28 @@
+server.port: 8095
+spring:
+  application.name: feed-service
+
+  cloud:
+    azure:
+      servicebus:
+        connection-string: ${AZURE_SERVICEBUS_CONNECTION_STRING}
+
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      database: 0
+      timeout: 2000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+
+management:
+  endpoints.web.exposure.include: health, info, metrics, prometheus
+  metrics.distribution.percentiles-histogram.http.server.requests: true
+  observations.key-values:
+    application: feed-service
+  tracing.sampling.probability: 1.0

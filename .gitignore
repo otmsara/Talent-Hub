@@ -1,0 +1,6 @@
+.idea
+.env
+.env.example
+.vscode
+.db
+/docker/tempo/tempo-data

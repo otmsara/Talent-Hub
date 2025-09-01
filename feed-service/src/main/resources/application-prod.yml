@@ -1,0 +1,11 @@
+spring:
+  datasource:
+    url: ${SPRING_DATABASE_DATASOURCE_URL:jdbc:postgresql://localhost:5433/postgres}
+    username: ${SPRING_DATABASE_USERNAME:postgres}
+    password: ${SPRING_DATABASE_PASSWORD:postgres}
+    driver-class-name: ${SPRING_DATABASE_DRIVER_CLASS_NAME:org.postgresql.Driver}
+  jpa:
+    hibernate:
+      ddl-auto: none
+  flyway:
+    enabled: true

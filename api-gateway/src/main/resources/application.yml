@@ -1,0 +1,177 @@
+server.port: 8080
+spring:
+  application:
+    name: api-gateway
+
+  security:
+    oauth2:
+      client:
+        provider:
+          azure:
+
+            authorization-uri: https://login.microsoftonline.com/consumers/oauth2/v2.0/authorize?prompt=select_account
+            token-uri: https://login.microsoftonline.com/consumers/oauth2/v2.0/token
+            user-info-uri: https://graph.microsoft.com/oidc/userinfo
+            jwk-set-uri: https://login.microsoftonline.com/consumers/discovery/v2.0/keys
+            user-name-attribute: sub
+        registration:
+          google:
+            client-id: ${OAUTH2_GOOGLE_CLIENT_ID}
+            client-secret: ${OAUTH2_GOOGLE_CLIENT_SECRET}
+            scope:
+              - openid
+              - profile
+              - email
+          azure:
+            client-id: ${OAUTH2_MICROSOFT_CLIENT_ID}
+            client-secret: ${OAUTH2_MICROSOFT_CLIENT_SECRET}
+            provider: azure
+            authorization-grant-type: authorization_code
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+            scope:
+              - openid
+              - profile
+              - email
+  cloud:
+    gateway:
+      routes:
+        - id: user-service
+          uri: lb://user-service
+          filters:
+            - name: CircuitBreaker
+              args:
+                fallbackUri: forward:/fallback
+          predicates:
+            - Path=/v1/users/**, /v1/badges/**, /v1/networks/**
+
+        - id: post-service
+          uri: lb://post-service
+          filters:
+            - name: CircuitBreaker
+              args:
+                fallbackUri: forward:/fallback
+          predicates:
+            - Path=/v1/posts/**, /v1/reactions/**, /v1/comments/**, /v1/reports/**, /v1/contributions/**
+
+        - id: media-service
+          uri: lb://media-service
+          predicates:
+            - Path=/v1/media/**
+
+        - id: feed-service
+          uri: lb://feed-service
+          filters:
+            - name: CircuitBreaker
+              args:
+                fallbackUri: forward:/fallback
+          predicates:
+            - Path=/v1/feeds/**
+
+        - id: chat-service-api
+          uri: lb://chat-service
+          filters:
+            - name: CircuitBreaker
+              args:
+                fallbackUri: forward:/fallback
+          predicates:
+            - Path=/v1/conversations/**, /v1/messages/**
+
+        - id: chat-service-websocket
+          uri: lb:ws://chat-service
+          predicates:
+            - Path=/ws-messages/**
+
+        - id: notification-service
+          uri: lb://notification-service
+          filters:
+            - name: CircuitBreaker
+              args:
+                fallbackUri: forward:/fallback
+          predicates:
+            - Path=/v1/notifications/**, /v1/events/**
+
+        - id: job-service
+          uri: lb://job-service
+          filters:
+            - name: CircuitBreaker
+              args:
+                fallbackUri: forward:/fallback
+          predicates:
+            - Path=/api/jobs/**, /api/applications/**, /api/saved-jobs/**
+
+      default-filters:
+        - name: RequestRateLimiter
+          args:
+            redis-rate-limiter.replenishRate: ${RATE_LIMITER_TOKEN_PER_SECOND:10}
+            redis-rate-limiter.burstCapacity: ${RATE_LIMITER_TOTAL_TOKEN:20}
+            redis-rate-limiter.requestedTokens: ${RATE_LIMITER_TOKEN_CONSUMPTION_PER_REQUEST:1}
+            key-resolver: "#{@userKeyResolver}"
+
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      database: 0
+      timeout: 2000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_CLIENT_SERVICE_URL_DEFAULT_ZONE:http://localhost:8761/eureka/}
+
+jwt.secret: ${JWT_SECRET:foo}
+
+# Actuator Endpoints
+management:
+  metrics:
+    distribution.percentiles-histogram.http.server.requests: true
+  observations:
+    key-values:
+      application: api-gateway
+  tracing:
+    sampling.probability: 1.0
+  health:
+    circuitbreakers:
+      enabled: true
+  endpoint:
+    health:
+      show-details: always
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+
+# Resilience4J Properties
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        register-health-indicator: true
+        sliding-window-type: count_based
+        sliding-window-size: 20
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 60s
+        permitted-number-of-calls-in-half-open-state: 3
+        automatic-transition-from-open-to-half-open-enabled: true
+        minimum-number-of-calls: 10
+  # Resilience4J Timeout Properties
+  timelimiter:
+    configs:
+      default:
+        timeout-duration: 10s
+  # Resilience4J Retry Properties
+  retry:
+    configs:
+      default:
+        max-attempts: 3
+        wait-duration: 2s
+
+app:
+  oauth2:
+    redirect-uri: ${OAUTH2_REDIRECT_URI:http://localhost:5000/auth/callback}

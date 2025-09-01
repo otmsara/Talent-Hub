@@ -1,0 +1,42 @@
+server.port: 8094
+spring:
+  application:
+    name: media-service
+
+  servlet:
+    multipart:
+      max-file-size: ${SPRING_SERVLET_MULTIPART_MAX_FILE_SIZE:500MB}
+      max-request-size: ${SPRING_SERVLET_MULTIPART_MAX_REQUEST_SIZE:500MB}
+
+eureka:
+  instance:
+    prefer-ip-address: true
+  client:
+    service-url:
+      defaultZone: ${EUREKA_CLIENT_SERVICE_URL_DEFAULT_ZONE:http://localhost:8761/eureka/}
+    fetch-registry: true
+    register-with-eureka: true
+
+file:
+  max-image-size: ${FILE_MAX_IMAGE_SIZE:10}
+  max-video-size: ${FILE_MAX_IMAGE_SIZE:500}
+  max-attachment_size: ${FILE_MAX_ATTACHMENT_SIZE:20}
+storage:
+  name: ${STORAGE_NAME}
+  base-url: ${STORAGE_BASE_URL}
+  containers:
+    image-name: ${STORAGE_CONTAINERS_IMAGE_NAME:images}
+    video-name: ${STORAGE_CONTAINERS_VIDEO_NAME:videos}
+    attachment-name: ${STORAGE_CONTAINERS_ATTACHMENT_NAME:attachments}
+
+azure:
+  storage:
+    connection-string: ${AZURE_STORAGE_CONNECTION_STRING}
+
+management:
+  endpoints.web.exposure.include: health, info, metrics, prometheus
+  metrics.distribution.percentiles-histogram.http.server.requests: true
+  observations.key-values:
+    application: media-service
+  tracing.sampling.probability: 1.0
+

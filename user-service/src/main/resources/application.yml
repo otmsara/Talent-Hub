@@ -1,0 +1,87 @@
+server.port: 8091
+spring:
+  application:
+    name: user-service
+
+  data:
+    rest:
+      base-path: /admin
+
+  servlet:
+    multipart:
+      max-file-size: ${SPRING_SERVLET_MULTIPART_MAX_FILE_SIZE:10MB}
+      max-request-size: ${SPRING_SERVLET_MULTIPART_MAX_REQUEST_SIZE:10MB}
+
+  #kafka:
+  #  producer:
+  #    key-serializer: org.apache.kafka.common.serialization.StringSerializer
+  #    value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+  #    acks: all
+  #    properties:
+  #      enable.idempotence: true
+
+  #cloud:
+  #  stream:
+  #    bindings:
+  #      user-upsert-events:
+  #        destination: user-upsert-events
+  #        content-type: application/json
+  #        producer:
+  #          use-native-encoding: true
+  #      notification-events:
+  #        destination: notification-events
+  #        producer:
+  #          use-native-encoding: true
+
+  cloud:
+    azure:
+      servicebus:
+        connection-string: ${AZURE_SERVICEBUS_CONNECTION_STRING}
+    stream:
+      servicebus:
+        bindings:
+          user-upsert-events:
+            producer:
+              entity-type: topic
+          notification-events:
+            producer:
+              entity-type: topic
+      bindings:
+        user-upsert-events:
+          destination: user-upsert-events
+
+        notification-events:
+          destination: notification-events
+
+eureka:
+  instance:
+    prefer-ip-address: true
+  client:
+    service-url:
+      defaultZone: ${EUREKA_CLIENT_SERVICE_URL_DEFAULT_ZONE:http://localhost:8761/eureka/}
+    fetch-registry: true
+    register-with-eureka: true
+
+
+jwt:
+  secret: ${JWT_SECRET:foo}
+  expiration: ${JWT_EXPIRATION:3600000}
+
+api:
+  endpoint:
+    base-url: /v1
+
+common:
+  outbox-event:
+    enabled: true
+    processor:
+      task:
+        fixed-rate: 5000
+
+management:
+  endpoints.web.exposure.include: health, info, metrics, prometheus
+  metrics.distribution.percentiles-histogram.http.server.requests: true
+  tracing.sampling.probability: 1.0
+  observations:
+    key-values:
+      application: user-service

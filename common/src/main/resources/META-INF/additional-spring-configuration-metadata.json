@@ -1,0 +1,40 @@
+{
+  "properties": [
+    {
+      "name": "common.outbox-event.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enabling outbox event.",
+      "defaultValue": "false"
+    },
+    {
+      "name": "common.outbox-event.processor.task.fixed-rate",
+      "type": "java.lang.String",
+      "description": "It define the schedule's fixed rate value for the method that's responsible for processing outbox events.",
+      "defaultValue": 5000
+    },
+    {
+      "name": "common.outbox-event.processor.task.output-name",
+      "type": "java.lang.String",
+      "description": "It is the name of the output that Stream Bridge will sent to.",
+      "defaultValue": "supply-out-0"
+    },
+    {
+      "name": "common.local-user.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enabling local user.",
+      "defaultValue": "false"
+    },
+    {
+      "name": "common.util.jwt.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Jwt util methods.",
+      "defaultValue": "false"
+    },
+    {
+      "name": "common.system.listener.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Events listener.",
+      "defaultValue": "false"
+    }
+  ]
+}
