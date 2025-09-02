@@ -1,0 +1,136 @@
+/* Custom dark theme for ReactQuill to match Arya platform, transparent border, scrollable */
+
+/* Toolbar styles */
+.ql-toolbar.ql-snow {
+  background: #181f3a;
+  border: none !important;
+  border-radius: 0.75rem 0.75rem 0 0;
+  color: #22d3ee;
+  font-family: inherit;
+}
+.ql-toolbar.ql-snow .ql-picker,
+.ql-toolbar.ql-snow .ql-picker-label,
+.ql-toolbar.ql-snow .ql-picker-options {
+  color: #22d3ee;
+}
+.ql-toolbar.ql-snow .ql-stroke {
+  stroke: #22d3ee;
+}
+.ql-toolbar.ql-snow .ql-fill {
+  fill: #22d3ee;
+}
+.ql-toolbar.ql-snow .ql-picker-label:hover,
+.ql-toolbar.ql-snow .ql-picker-label.ql-active,
+.ql-toolbar.ql-snow .ql-picker-item.ql-selected {
+  color: #67e8f9;
+}
+.ql-toolbar.ql-snow button:hover,
+.ql-toolbar.ql-snow button.ql-active {
+  color: #67e8f9;
+  stroke: #67e8f9;
+}
+
+/* Editor container styles */
+.ql-container.ql-snow {
+  background: #10162a;
+  border: none !important;
+  border-radius: 0 0 0.75rem 0.75rem;
+  color: #e0eaff;
+  font-family: inherit;
+  font-size: 1rem;
+  line-height: 1.7;
+  padding: 0.75rem 1rem;
+  min-height: 80px;
+  /* max-height and overflow-y removed for modal expansion */
+  box-shadow: none;
+}
+
+/* Editor content styles */
+.ql-editor {
+  background: transparent;
+  color: #e0eaff;
+  font-family: inherit;
+  font-size: 1rem;
+  line-height: 1.7;
+  padding: 0;
+  text-transform: none !important;
+  /* max-height and overflow-y removed for modal expansion */
+}
+
+.ql-editor * {
+  font-family: inherit !important;
+  color: inherit !important;
+  text-transform: none !important;
+}
+
+.ql-editor strong {
+  font-weight: bold;
+  color: #67e8f9;
+}
+.ql-editor em {
+  font-style: italic;
+  color: #a5f3fc;
+}
+.ql-editor u {
+  text-decoration: underline;
+  color: #f472b6;
+}
+
+.ql-editor ul,
+.ql-editor ol {
+  padding-left: 1.5em;
+}
+
+.ql-editor li {
+  margin-bottom: 0.25em;
+}
+
+.ql-editor:focus {
+  outline: none;
+}
+
+/* Inline code styling */
+.ql-editor code,
+.ql-editor pre code {
+  background: #f3f4f6;
+  color: #18181b !important;
+  font-family: 'Fira Mono', 'Consolas', 'Menlo', 'Monaco', monospace !important;
+  font-size: 0.97em;
+  padding: 0.15em 0.4em;
+  border-radius: 0.3em;
+  margin: 0 0.1em;
+  box-shadow: 0 1px 2px 0 #0002;
+  white-space: pre-wrap;
+}
+
+/* Block code styling */
+.ql-editor pre {
+  background: #e5e7eb;
+  color: #18181b !important;
+  font-family: 'Fira Mono', 'Consolas', 'Menlo', 'Monaco', monospace !important;
+  font-size: 0.97em;
+  padding: 1em;
+  border-radius: 0.5em;
+  margin: 1em 0;
+  overflow-x: auto;
+  box-shadow: 0 2px 8px 0 #0003;
+}
+.ql-editor pre code {
+  background: none;
+  color: #18181b !important;
+  padding: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.ql-snow .ql-tooltip {
+  background: #181f3a;
+  color: #e0eaff;
+  border: 1px solid #22d3ee;
+}
+
+.ql-snow .ql-tooltip input[type=text] {
+  background: #10162a;
+  color: #e0eaff;
+  border: 1px solid #22d3ee;
+}
